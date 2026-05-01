@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Domain, formatPrice } from "@/data/domains";
+import { Domain, formatPrice } from "@/data/domain-types";
 
 export default function DomainCard({ domain }: { domain: Domain }) {
   const isSold = domain.status === "sold";

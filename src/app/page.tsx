@@ -1,4 +1,4 @@
-import DomainCard from "@/components/DomainCard";
+import SearchableDomainGrid from "@/components/SearchableDomainGrid";
 import BusinessPlanForm from "@/components/BusinessPlanForm";
 import { getPublicDomains } from "@/data/domains";
 
@@ -42,9 +42,9 @@ export default async function Home() {
         {/* Stats bar */}
         <div className="mx-auto max-w-3xl mt-20 grid grid-cols-3 gap-px rounded-2xl border border-border bg-border overflow-hidden">
           {[
-            { value: `${domains.length}+`, label: "Domains" },
-            { value: "48hr", label: "Response Time" },
-            { value: "2", label: "Ways to Acquire" },
+            { value: `${domains.filter((d) => d.status !== "sold").length}+`, label: "Available" },
+            { value: `${domains.filter((d) => d.status === "sold").length}`, label: "Sold" },
+            { value: "48hr", label: "Response" },
           ].map((stat) => (
             <div key={stat.label} className="bg-bg-card px-6 py-5 text-center">
               <p className="text-2xl font-bold text-text font-mono">{stat.value}</p>
@@ -135,20 +135,18 @@ export default async function Home() {
 
           {domainsError ? (
             <div className="text-center py-20 rounded-2xl border border-red-500/30 bg-red-500/5">
-              <p className="text-red-400 font-mono text-sm px-4 break-all">
+              <p className="text-red-600 font-mono text-sm px-4 break-all">
                 Database error: {domainsError}
               </p>
             </div>
           ) : domains.length === 0 ? (
             <div className="text-center py-20 rounded-2xl border border-border bg-bg-card">
-              <p className="text-text-tertiary">No domains listed yet. Check back soon.</p>
+              <p className="text-text-tertiary">
+                No domains listed yet. Check back soon.
+              </p>
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {domains.map((domain) => (
-                <DomainCard key={domain.slug} domain={domain} />
-              ))}
-            </div>
+            <SearchableDomainGrid domains={domains} />
           )}
         </div>
       </section>

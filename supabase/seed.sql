@@ -137,3 +137,9 @@ insert into public.domains (slug, name, category, sort_order) values
   ('vlgx-ai', 'vlgx.ai', 'AI', 135),
   ('kycit-ai', 'kycit.ai', 'AI', 136)
 on conflict (slug) do nothing;
+
+-- Sold domains (shown publicly with a "Sold" badge to surface traction).
+insert into public.domains (slug, name, category, status, sort_order) values
+  ('speed-ai', 'speed.ai', 'AI', 'sold', 0),
+  ('t-ai', 't.ai', 'AI', 'sold', 0)
+on conflict (slug) do update set status = excluded.status, sort_order = excluded.sort_order;

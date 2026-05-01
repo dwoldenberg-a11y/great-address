@@ -1,16 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import { Domain } from "./domain-types";
 
-export interface Domain {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  category: string;
-  askingPrice: number | null;
-  highlights: string[];
-  status: "visible" | "hidden" | "sold";
-  sortOrder: number;
-}
+export type { Domain };
+export { formatPrice } from "./domain-types";
 
 type DomainRow = {
   id: string;
@@ -31,8 +23,7 @@ function rowToDomain(row: DomainRow): Domain {
     name: row.name,
     description: row.description,
     category: row.category,
-    askingPrice:
-      row.asking_price === null ? null : Number(row.asking_price),
+    askingPrice: row.asking_price === null ? null : Number(row.asking_price),
     highlights: row.highlights,
     status: row.status,
     sortOrder: row.sort_order,
@@ -73,13 +64,4 @@ export async function getPublicDomain(slug: string): Promise<Domain | null> {
     return null;
   }
   return data ? rowToDomain(data as DomainRow) : null;
-}
-
-export function formatPrice(price: number | null): string {
-  if (price === null) return "Make an Offer";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(price);
 }
