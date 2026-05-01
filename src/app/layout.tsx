@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Great Address — Premium Domain Marketplace",
+  title: "Great Address — Premium Domains",
   description:
-    "Acquire premium domains outright or propose a business plan to build on one. Your next great address starts here.",
+    "Acquire premium domains or pitch your business plan for an equity partnership. Your next great address starts here.",
 };
 
 export default function RootLayout({
@@ -26,11 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

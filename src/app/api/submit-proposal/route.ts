@@ -1,31 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
+  const { domain, name, email, company, plan, equityRange, website } = body;
 
-  const { domain, name, email, company, plan, equityRange } = body;
-
-  if (!domain || !name || !email || !company || !plan || !equityRange) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 }
-    );
+  if (!name || !email || !plan) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // TODO: Replace with your preferred storage/notification method:
-  // - Send an email notification
-  // - Store in a database (e.g. Supabase, PlanetScale)
-  // - Post to a Slack webhook
-  // - Write to a Google Sheet via API
-  console.log("New business proposal received:", {
-    domain,
-    name,
-    email,
-    company,
-    plan,
-    equityRange,
-    timestamp: new Date().toISOString(),
-  });
+  const domainLine = domain || "(from homepage form)";
 
-  return NextResponse.json({ success: true });
+  try {
+    await resend.emails.send({
+      from: "Great Address <onboarding@resend.dev>",
+      to: "david@woldenberg.com",
+      subject: `New Business Plan: ${company || name} — ${domainLine}`,
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
+          <h2 style="color: #111; margin-bottom: 4px;">New Business Plan Submission</h2>
+          <p style="color: #666; margin-top: 0;">Someone wants to partner on <strong>${domainLine}</strong></p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <table style="width: 100%; font-size: 14px; color: #333;">
+            <tr><td style="padding: 6px 0; color: #888; width: 140px;">Name</td><td style="padding: 6px 0;">${name}</td></tr>
+            <tr><td style="padding: 6px 0; color: #888;">Email</td><td style="padding: 6px 0;"><a href="mailto:${email}" style="color: #0066cc;">${email}</a></td></tr>
+            ${company ? `<tr><td style="padding: 6px 0; color: #888;">Company</td><td style="padding: 6px 0; font-weight: 600;">${company}</td></tr>` : ""}
+            <tr><td style="padding: 6px 0; color: #888;">Domain</td><td style="padding: 6px 0; font-weight: 600;">${domainLine}</td></tr>
+            <tr><td style="padding: 6px 0; color: #888;">Equity Range</td><td style="padding: 6px 0; font-weight: 600; color: #059669;">${equityRange || "Not specified"}</td></tr>
+            ${website ? `<tr><td style="padding: 6px 0; color: #888;">Website</td><td style="padding: 6px 0;"><a href="${website}" style="color: #0066cc;">${website}</a></td></tr>` : ""}
+          </table>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <h3 style="color: #111; font-size: 14px; margin-bottom: 8px;">Business Plan</h3>
+          <div style="background: #f9f9f9; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap;">${plan}</div>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #999;">Sent from Great Address</p>
+        </div>
+      `,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to send proposal email:", error);
+    return NextResponse.json({ error: "Failed to send" }, { status: 500 });
+  }
 }
