@@ -9,8 +9,8 @@ export default function DomainCard({ domain }: { domain: Domain }) {
       href={`/domain/${domain.slug}`}
       className={`group relative block rounded-2xl border bg-bg-card p-6 transition-all duration-300 ${
         isSold
-          ? "border-border opacity-70"
-          : "border-border hover:border-border-hover hover:bg-bg-card-hover hover:shadow-[0_0_60px_rgba(0,232,123,0.06)]"
+          ? "border-accent/40 bg-gradient-to-br from-accent/8 to-bg-card shadow-[0_0_30px_rgba(124,58,237,0.10)] hover:border-accent/60 hover:shadow-[0_0_50px_rgba(124,58,237,0.18)]"
+          : "border-border hover:border-border-hover hover:bg-bg-card-hover hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]"
       }`}
     >
       <div className="flex items-start justify-between mb-6">
@@ -19,7 +19,10 @@ export default function DomainCard({ domain }: { domain: Domain }) {
             {domain.category}
           </span>
           {isSold && (
-            <span className="inline-block rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-red-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
               Sold
             </span>
           )}
@@ -46,10 +49,10 @@ export default function DomainCard({ domain }: { domain: Domain }) {
 
       <div className="flex items-center justify-between pt-4 border-t border-border">
         <span className="text-sm font-mono font-medium text-accent">
-          {isSold ? "—" : formatPrice(domain.askingPrice)}
+          {isSold ? "Closed deal" : formatPrice(domain.askingPrice)}
         </span>
         <span className="text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
-          View details
+          {isSold ? "Case study" : "View details"}
         </span>
       </div>
     </Link>
