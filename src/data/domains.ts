@@ -1,35 +1,78 @@
+import { createClient } from "@/lib/supabase/server";
+
 export interface Domain {
+  id: string;
   slug: string;
   name: string;
   description: string;
   category: string;
-  askingPrice: number | null; // null = "Make an offer"
+  askingPrice: number | null;
   highlights: string[];
+  status: "visible" | "hidden" | "sold";
+  sortOrder: number;
 }
 
-export const domains: Domain[] = [
-  {
-    slug: "example-com",
-    name: "example.com",
-    description:
-      "A versatile, memorable domain perfect for any business or project.",
-    category: "General",
-    askingPrice: null,
-    highlights: ["Short and memorable", "Universal appeal", ".com TLD"],
-  },
-  // Add your real domains here following this pattern:
-  // {
-  //   slug: "your-domain",
-  //   name: "yourdomain.com",
-  //   description: "Description of the domain",
-  //   category: "Category",
-  //   askingPrice: 5000, // or null for "Make an offer"
-  //   highlights: ["Highlight 1", "Highlight 2"],
-  // },
-];
+type DomainRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  asking_price: number | string | null;
+  highlights: string[];
+  status: "visible" | "hidden" | "sold";
+  sort_order: number;
+};
 
-export function getDomain(slug: string): Domain | undefined {
-  return domains.find((d) => d.slug === slug);
+function rowToDomain(row: DomainRow): Domain {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    category: row.category,
+    askingPrice:
+      row.asking_price === null ? null : Number(row.asking_price),
+    highlights: row.highlights,
+    status: row.status,
+    sortOrder: row.sort_order,
+  };
+}
+
+// Public listing: visible + sold (sold rows are shown with a SOLD badge).
+// Hidden rows are filtered out by RLS.
+export async function getPublicDomains(): Promise<{
+  domains: Domain[];
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("domains")
+    .select("*")
+    .in("status", ["visible", "sold"])
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("getPublicDomains error", error);
+    return { domains: [], error: error.message };
+  }
+  return { domains: (data as DomainRow[]).map(rowToDomain) };
+}
+
+export async function getPublicDomain(slug: string): Promise<Domain | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("domains")
+    .select("*")
+    .eq("slug", slug)
+    .in("status", ["visible", "sold"])
+    .maybeSingle();
+
+  if (error) {
+    console.error("getPublicDomain error", error);
+    return null;
+  }
+  return data ? rowToDomain(data as DomainRow) : null;
 }
 
 export function formatPrice(price: number | null): string {

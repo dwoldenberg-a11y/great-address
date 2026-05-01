@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { domains, getDomain, formatPrice } from "@/data/domains";
+import { getPublicDomain, formatPrice } from "@/data/domains";
 import OfferForm from "@/components/OfferForm";
 import ProposalForm from "@/components/ProposalForm";
-
-export function generateStaticParams() {
-  return domains.map((d) => ({ slug: d.slug }));
-}
 
 export async function generateMetadata({
   params,
@@ -14,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const domain = getDomain(slug);
+  const domain = await getPublicDomain(slug);
   if (!domain) return { title: "Domain Not Found" };
   return {
     title: `${domain.name} — Great Address`,
@@ -28,8 +24,9 @@ export default async function DomainPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const domain = getDomain(slug);
+  const domain = await getPublicDomain(slug);
   if (!domain) notFound();
+  const isSold = domain.status === "sold";
 
   return (
     <div className="pt-28 pb-24 px-6">
@@ -47,21 +44,32 @@ export default async function DomainPage({
 
         {/* Domain Header */}
         <div className="mb-16">
-          <span className="inline-block rounded-full border border-border px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-text-tertiary mb-5">
-            {domain.category}
-          </span>
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <span className="inline-block rounded-full border border-border px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
+              {domain.category}
+            </span>
+            {isSold && (
+              <span className="inline-block rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-red-400">
+                Sold
+              </span>
+            )}
+          </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
             {domain.name}
           </h1>
-          <p className="text-lg text-text-secondary max-w-xl leading-relaxed mb-8">
-            {domain.description}
-          </p>
-          <div className="inline-flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/5 px-6 py-3">
-            <span className="text-sm text-text-secondary">Price</span>
-            <span className="text-xl font-bold font-mono text-accent">
-              {formatPrice(domain.askingPrice)}
-            </span>
-          </div>
+          {domain.description && (
+            <p className="text-lg text-text-secondary max-w-xl leading-relaxed mb-8">
+              {domain.description}
+            </p>
+          )}
+          {!isSold && (
+            <div className="inline-flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/5 px-6 py-3">
+              <span className="text-sm text-text-secondary">Price</span>
+              <span className="text-xl font-bold font-mono text-accent">
+                {formatPrice(domain.askingPrice)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Highlights */}
@@ -84,6 +92,20 @@ export default async function DomainPage({
         )}
 
         {/* Forms */}
+        {isSold ? (
+          <div className="rounded-2xl border border-border bg-bg-card p-10 text-center">
+            <h2 className="text-lg font-semibold mb-2">This domain has been sold</h2>
+            <p className="text-text-secondary text-sm">
+              Browse the rest of our portfolio for available addresses.
+            </p>
+            <Link
+              href="/#domains"
+              className="inline-block mt-6 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-bg hover:bg-accent-dim transition-colors"
+            >
+              Browse Available Domains
+            </Link>
+          </div>
+        ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-border bg-bg-card p-8">
             <div className="flex items-center gap-3 mb-6">
@@ -115,6 +137,7 @@ export default async function DomainPage({
             <ProposalForm domainName={domain.name} />
           </div>
         </div>
+        )}
       </div>
     </div>
   );

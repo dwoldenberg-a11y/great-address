@@ -1,8 +1,9 @@
 import DomainCard from "@/components/DomainCard";
 import BusinessPlanForm from "@/components/BusinessPlanForm";
-import { domains } from "@/data/domains";
+import { getPublicDomains } from "@/data/domains";
 
-export default function Home() {
+export default async function Home() {
+  const { domains, error: domainsError } = await getPublicDomains();
   return (
     <div>
       {/* Hero */}
@@ -132,7 +133,13 @@ export default function Home() {
             </p>
           </div>
 
-          {domains.length === 0 ? (
+          {domainsError ? (
+            <div className="text-center py-20 rounded-2xl border border-red-500/30 bg-red-500/5">
+              <p className="text-red-400 font-mono text-sm px-4 break-all">
+                Database error: {domainsError}
+              </p>
+            </div>
+          ) : domains.length === 0 ? (
             <div className="text-center py-20 rounded-2xl border border-border bg-bg-card">
               <p className="text-text-tertiary">No domains listed yet. Check back soon.</p>
             </div>

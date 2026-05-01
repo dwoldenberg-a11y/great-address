@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Great Address
 
-## Getting Started
+Premium domain marketplace built with Next.js 16 + Supabase.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Supabase
+
+Create a project at [supabase.com](https://supabase.com), then in the SQL Editor:
+
+1. Run [`supabase/schema.sql`](supabase/schema.sql) — creates the `domains` table, RLS policies, and update trigger.
+2. Run [`supabase/seed.sql`](supabase/seed.sql) — inserts the 136 starter domains.
+
+In **Authentication → Providers → Email**, disable **"Enable Sign Ups"** so only your admin user can exist.
+
+In **Authentication → Users**, click **Add user** and create yourself an admin account.
+
+### 2. Environment variables
+
+Copy `.env.local.example` to `.env.local` and fill in:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+ADMIN_EMAIL=you@example.com
+RESEND_API_KEY=...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Add the same vars to your Vercel project (Settings → Environment Variables).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+- Public site: [http://localhost:3000](http://localhost:3000)
+- Admin: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
-To learn more about Next.js, take a look at the following resources:
+## Admin
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The admin dashboard at `/admin` lets you, per-domain:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Edit the suggested price (blank = "Make an Offer")
+- Edit description and category
+- **Hide** a domain (removed from public site)
+- **Mark sold** (shown publicly with a "Sold" badge, no offer forms)
 
-## Deploy on Vercel
+## Data model
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Column          | Type           | Notes                                       |
+|-----------------|----------------|---------------------------------------------|
+| `slug`          | text, unique   | URL slug, e.g. `steel-ai`                   |
+| `name`          | text           | Display name, e.g. `steel.ai`               |
+| `description`   | text           | Optional                                    |
+| `category`      | text           | e.g. `AI`, `App`                            |
+| `asking_price`  | numeric, null  | `null` shows "Make an Offer" on the public site |
+| `highlights`    | text[]         | Bullet tags shown on the detail page        |
+| `status`        | text           | `visible` \| `hidden` \| `sold`             |
+| `sort_order`    | integer        | Lower = shown first                         |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+RLS: anon role sees `visible` + `sold`; authenticated role (admin) sees everything.
