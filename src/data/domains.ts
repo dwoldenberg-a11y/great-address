@@ -13,6 +13,7 @@ type DomainRow = {
   asking_price: number | string | null;
   highlights: string[];
   status: "visible" | "hidden" | "sold";
+  owner: string;
   sort_order: number;
 };
 
@@ -26,6 +27,7 @@ function rowToDomain(row: DomainRow): Domain {
     askingPrice: row.asking_price === null ? null : Number(row.asking_price),
     highlights: row.highlights,
     status: row.status,
+    owner: row.owner,
     sortOrder: row.sort_order,
   };
 }

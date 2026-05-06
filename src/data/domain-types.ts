@@ -7,6 +7,7 @@ export interface Domain {
   askingPrice: number | null;
   highlights: string[];
   status: "visible" | "hidden" | "sold";
+  owner: string;
   sortOrder: number;
 }
 

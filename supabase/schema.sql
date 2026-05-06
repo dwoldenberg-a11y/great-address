@@ -9,6 +9,7 @@ create table if not exists public.domains (
   asking_price numeric,
   highlights text[] not null default '{}',
   status text not null default 'visible' check (status in ('visible', 'hidden', 'sold')),
+  owner text not null default 'Woldenberg',
   sort_order integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -16,6 +17,7 @@ create table if not exists public.domains (
 
 create index if not exists domains_status_idx on public.domains(status);
 create index if not exists domains_sort_idx on public.domains(sort_order);
+create index if not exists domains_owner_idx on public.domains(owner);
 
 create or replace function public.touch_updated_at() returns trigger as $$
 begin

@@ -12,6 +12,7 @@ type DomainRow = {
   category: string;
   asking_price: number | string | null;
   status: "visible" | "hidden" | "sold";
+  owner: string | null;
   sort_order: number;
 };
 
@@ -31,7 +32,14 @@ export default async function AdminPage() {
     category: r.category,
     askingPrice: r.asking_price === null ? null : Number(r.asking_price),
     status: r.status,
+    owner: r.owner ?? "",
   }));
+
+  const ownerCounts = domains.reduce<Record<string, number>>((acc, d) => {
+    const key = d.owner || "Unassigned";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const counts = {
     total: domains.length,
@@ -71,7 +79,7 @@ export default async function AdminPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border bg-border overflow-hidden mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border bg-border overflow-hidden mb-3">
           {[
             { label: "Total", value: counts.total },
             { label: "Visible", value: counts.visible },
@@ -87,9 +95,24 @@ export default async function AdminPage() {
           ))}
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-8">
+          {Object.entries(ownerCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([owner, count]) => (
+              <span
+                key={owner}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-card px-3 py-1 text-xs text-text-secondary"
+              >
+                <span className="font-medium text-text">{owner}</span>
+                <span className="font-mono text-text-tertiary">{count}</span>
+              </span>
+            ))}
+        </div>
+
         <div className="rounded-2xl border border-border bg-bg-card overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr_140px_120px_140px_120px] gap-4 px-5 py-3 border-b border-border bg-bg-elevated text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <div className="hidden md:grid grid-cols-[1fr_120px_110px_110px_110px_120px] gap-4 px-5 py-3 border-b border-border bg-bg-elevated text-xs font-medium uppercase tracking-wider text-text-tertiary">
             <div>Domain</div>
+            <div>Owner</div>
             <div>Category</div>
             <div>Price (USD)</div>
             <div>Status</div>

@@ -12,6 +12,7 @@ export type AdminDomain = {
   category: string;
   askingPrice: number | null;
   status: "visible" | "hidden" | "sold";
+  owner: string;
 };
 
 const inputClass =
@@ -36,7 +37,7 @@ export default function AdminDomainRow({ domain }: { domain: AdminDomain }) {
             setEditing(false);
           });
         }}
-        className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_140px_120px_140px_120px] md:items-center"
+        className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_120px_110px_110px_110px_120px] md:items-center"
       >
         <input type="hidden" name="id" value={domain.id} />
         <div>
@@ -49,6 +50,12 @@ export default function AdminDomainRow({ domain }: { domain: AdminDomain }) {
             className={`${inputClass} mt-2`}
           />
         </div>
+        <input
+          name="owner"
+          placeholder="Owner"
+          defaultValue={domain.owner}
+          className={inputClass}
+        />
         <input
           name="category"
           defaultValue={domain.category}
@@ -95,7 +102,7 @@ export default function AdminDomainRow({ domain }: { domain: AdminDomain }) {
   }
 
   return (
-    <div className="grid gap-2 px-5 py-4 md:grid-cols-[1fr_140px_120px_140px_120px] md:items-center md:gap-4">
+    <div className="grid gap-2 px-5 py-4 md:grid-cols-[1fr_120px_110px_110px_110px_120px] md:items-center md:gap-4">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <Link
@@ -110,6 +117,11 @@ export default function AdminDomainRow({ domain }: { domain: AdminDomain }) {
           <p className="text-xs text-text-tertiary mt-1 line-clamp-1">
             {domain.description}
           </p>
+        )}
+      </div>
+      <div className="text-sm text-text-secondary truncate">
+        {domain.owner || (
+          <span className="text-text-tertiary">—</span>
         )}
       </div>
       <div className="text-sm text-text-secondary">{domain.category}</div>

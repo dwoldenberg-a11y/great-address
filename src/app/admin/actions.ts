@@ -43,6 +43,7 @@ export async function updateDomain(formData: FormData) {
   const status = String(formData.get("status") ?? "visible") as DomainStatus;
   const description = String(formData.get("description") ?? "");
   const category = String(formData.get("category") ?? "General");
+  const owner = String(formData.get("owner") ?? "").trim() || "Woldenberg";
 
   if (!["visible", "hidden", "sold"].includes(status)) return;
 
@@ -59,6 +60,7 @@ export async function updateDomain(formData: FormData) {
       status,
       description,
       category,
+      owner,
     })
     .eq("id", id);
 
