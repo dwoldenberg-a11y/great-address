@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await resend.emails.send({
       from: "Great Address <onboarding@resend.dev>",
-      to: "david@woldenberg.com",
+      to: "dwoldenberg@visualogyx.com",
       subject: `New Business Plan: ${company || name} — ${domainLine}`,
       html: `
         <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
