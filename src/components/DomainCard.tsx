@@ -51,9 +51,11 @@ export default function DomainCard({ domain }: { domain: Domain }) {
         <span className="text-sm font-mono font-medium text-accent">
           {isSold ? "Closed deal" : formatPrice(domain.askingPrice)}
         </span>
-        <span className="text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
-          {isSold ? "Case study" : "View details"}
-        </span>
+        {!isSold && (
+          <span className="text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
+            View details
+          </span>
+        )}
       </div>
     </Link>
   );

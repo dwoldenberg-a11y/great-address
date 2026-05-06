@@ -68,7 +68,7 @@ export default async function Home() {
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* Buy card */}
-            <div className="group rounded-2xl border border-border bg-bg-card p-8 md:p-10 transition-all duration-300 hover:border-border-hover">
+            <div className="group rounded-2xl border border-accent/20 bg-bg-card p-8 md:p-10 transition-all duration-300 hover:border-accent/40 glow">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent mb-6">
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -82,7 +82,7 @@ export default async function Home() {
               <div className="space-y-3 text-sm">
                 {["Browse available domains", "Submit your offer", "Transfer in 48 hours"].map((step, i) => (
                   <div key={step} className="flex items-center gap-3 text-text-tertiary">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-xs font-mono">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full border border-accent/30 text-accent text-xs font-mono">
                       {i + 1}
                     </span>
                     {step}
