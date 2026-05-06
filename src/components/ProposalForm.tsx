@@ -7,10 +7,12 @@ const inputClass =
 
 export default function ProposalForm({ domainName }: { domainName: string }) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
+    setErrorMsg("");
 
     const form = e.currentTarget;
     const data = {
@@ -29,10 +31,14 @@ export default function ProposalForm({ domainName }: { domainName: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || `Request failed (${res.status})`);
+      }
       setStatus("sent");
       form.reset();
-    } catch {
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
       setStatus("error");
     }
   }
@@ -98,7 +104,9 @@ export default function ProposalForm({ domainName }: { domainName: string }) {
         {status === "sending" ? "Submitting..." : "Submit Proposal"}
       </button>
       {status === "error" && (
-        <p className="text-sm text-red-400 text-center">Something went wrong. Please try again.</p>
+        <p className="text-sm text-red-400 text-center">
+          {errorMsg || "Something went wrong. Please try again."}
+        </p>
       )}
     </form>
   );
