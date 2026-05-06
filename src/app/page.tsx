@@ -121,15 +121,18 @@ export default async function Home() {
       {/* Domain Listings */}
       <section id="domains" className="py-24 px-6 bg-bg-elevated">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <span className="inline-block rounded-full border border-border px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-text-tertiary mb-4">
-              Portfolio
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Available domains
-            </h2>
-            <p className="text-text-secondary mt-3">
-              Browse our collection and find your perfect address
+          <div className="mb-16 flex items-end justify-between gap-6 flex-wrap border-b border-border pb-6">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-text-tertiary mb-3">
+                The Portfolio
+              </p>
+              <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05]">
+                A curated index<br />of great addresses.
+              </h2>
+            </div>
+            <p className="text-sm text-text-tertiary max-w-xs leading-relaxed">
+              Grouped by industry. Search to narrow. Click any address to make
+              an offer or pitch us a vision.
             </p>
           </div>
 

@@ -1,19 +1,149 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Domain } from "@/data/domain-types";
 import DomainCard from "./DomainCard";
 
-function getTld(name: string): string {
-  const parts = name.split(".");
-  return (parts[parts.length - 1] ?? "").toLowerCase();
-}
+// ─── Curated theme membership ────────────────────────────────────────────────
+// Domains are matched against these sets in declaration order; the first
+// matching theme wins, so order also encodes priority.
 
-// Show common TLDs in a stable order; everything else trails alphabetically.
-const TLD_ORDER = ["ai", "com", "app", "io", "co"];
-function tldRank(tld: string): number {
-  const i = TLD_ORDER.indexOf(tld);
-  return i === -1 ? TLD_ORDER.length : i;
+const TOP_PICKS = new Set([
+  "tmec.ai", "t-mec.ai", "mtr.ai", "etf.ai", "kpi.ai", "pmi.ai",
+  "gdp.ai", "kyc.ai", "fx.ai", "pe.ai", "hq.ai", "tq.ai",
+  "set.ai", "vq.ai",
+]);
+
+const SPANISH = new Set([
+  "manufactura.ai", "litio.ai", "cobre.ai", "monterrey.ai",
+  "radiologia.ai", "baterias.ai", "energias.ai", "inyectables.ai",
+  "electrico.ai", "mantenimiento.ai", "ahorro.ai", "enfermeria.ai",
+  "iluminacion.ai", "vacaciones.ai", "produccion.ai", "integracion.ai",
+  "electricista.ai", "enfermera.ai", "estadio.ai", "instalacion.ai",
+  "plomero.ai",
+]);
+
+const METALS = new Set([
+  "steel.ai", "metals.ai", "tubes.ai", "octg.ai", "linepipe.ai",
+  "tubacero.ai", "certs.ai", "crosscheck.ai",
+  "steel.app", "tubes.app", "tubacero.app", "nucor.app",
+]);
+
+const TRANSPORT = new Set([
+  "transport.ai", "truck.ai", "hauler.ai", "tranzport.ai",
+  "logyx.ai", "krgo.ai", "trk.ai", "shipper.ai", "receiver.ai",
+  "consignee.ai", "snapship.ai", "transporter.ai", "tport.ai",
+  "3pl.ai", "4pl.ai", "5pl.ai", "loadboards.ai", "loadboard.ai",
+  "sku.ai", "transport.app", "tranzport.app",
+]);
+
+const FINANCE = new Set([
+  "equities.ai", "stockmarket.ai", "stockbroker.ai", "brokers.ai",
+  "mybroker.ai", "mybrokers.ai", "statements.ai", "statement.ai",
+  "currency.ai", "forex.ai", "privateequity.ai",
+  "familyoffice.ai", "nfp.ai", "reconcile.ai", "reconcileit.ai",
+  "deduct.ai", "equities.app",
+]);
+
+const HEALTH = new Set([
+  "radiology.ai", "pillbox.ai", "peptidos.ai", "kyh.ai", "hpn.ai",
+  "immucert.ai", "immunitypass.ai", "diet.ai", "marriage.ai",
+  "socialdensity.ai", "socialdensityscore.ai",
+]);
+
+const AUDIT = new Set([
+  "inspector.ai", "inspect.ai", "fieldaudit.ai", "vcount.ai",
+  "icount.ai", "snapcount.ai", "countit.ai", "count.ai",
+  "auditit.ai", "verifyit.ai", "inspectit.ai", "analizeit.ai",
+  "analyzeit.ai", "kycit.ai", "tpi.ai", "phosterity.ai",
+  "visualaudit.ai", "inspections.app",
+]);
+
+const PERSONAS = new Set([
+  "receptionist.ai", "secretary.ai", "resident.ai", "mentor.ai",
+  "worker.ai", "warren.ai", "jorge.ai", "erica.ai", "drone.ai",
+  "training.ai", "university.ai", "freesbie.ai", "university.app",
+]);
+
+type Theme = {
+  id: string;
+  label: string;
+  tagline: string;
+  match: (d: Domain) => boolean;
+};
+
+const THEMES: Theme[] = [
+  {
+    id: "top",
+    label: "Top Picks",
+    tagline: "Two- and three-letter premiums and category-defining names.",
+    match: (d) => TOP_PICKS.has(d.name),
+  },
+  {
+    id: "spanish",
+    label: "Colección Española",
+    tagline: "Brandable Spanish-language addresses for LATAM and Hispanic markets.",
+    match: (d) => SPANISH.has(d.name),
+  },
+  {
+    id: "metals",
+    label: "Metals & Industrial",
+    tagline: "Steel, copper, and the supply chain that moves them.",
+    match: (d) => METALS.has(d.name),
+  },
+  {
+    id: "transport",
+    label: "Transport & Logistics",
+    tagline: "Trucks, ships, and the connective tissue between them.",
+    match: (d) => TRANSPORT.has(d.name),
+  },
+  {
+    id: "finance",
+    label: "Finance & Markets",
+    tagline: "Wall Street vocabulary, on the right side of the dot.",
+    match: (d) => FINANCE.has(d.name),
+  },
+  {
+    id: "health",
+    label: "Health & Pharma",
+    tagline: "From peptides to pillboxes.",
+    match: (d) => HEALTH.has(d.name),
+  },
+  {
+    id: "audit",
+    label: "Audit & Verify",
+    tagline: "Inspect, count, prove — the trust layer.",
+    match: (d) => AUDIT.has(d.name),
+  },
+  {
+    id: "personas",
+    label: "AI Personas",
+    tagline: "Names that already feel like teammates.",
+    match: (d) => PERSONAS.has(d.name),
+  },
+  {
+    id: "bitcoin",
+    label: "·bitcoin",
+    tagline: "Native handles for the on-chain web.",
+    match: (d) => d.name.endsWith(".bitcoin"),
+  },
+  {
+    id: "apps",
+    label: "·app",
+    tagline: "Brand-ready application domains.",
+    match: (d) => d.name.endsWith(".app"),
+  },
+  {
+    id: "more",
+    label: "More AI",
+    tagline: "The rest of the catalog — odds, ends, and overlooked gems.",
+    match: () => true,
+  },
+];
+
+function classify(d: Domain): string {
+  for (const t of THEMES) if (t.match(d)) return t.id;
+  return "more";
 }
 
 export default function SearchableDomainGrid({
@@ -26,30 +156,29 @@ export default function SearchableDomainGrid({
   const query = q.trim().toLowerCase();
   const filtered = useMemo(() => {
     if (!query) return domains;
-    return domains.filter((d) => {
-      const haystack =
-        `${d.name} ${d.category} ${d.description}`.toLowerCase();
-      return haystack.includes(query);
-    });
+    return domains.filter((d) =>
+      `${d.name} ${d.category} ${d.description}`
+        .toLowerCase()
+        .includes(query),
+    );
   }, [domains, query]);
 
   const sold = filtered.filter((d) => d.status === "sold");
   const available = filtered.filter((d) => d.status !== "sold");
 
-  // Group available by TLD, ordered by TLD_ORDER then alphabetical.
-  const grouped = useMemo(() => {
-    const groups = new Map<string, Domain[]>();
+  // Bucket every available domain into exactly one theme, preserving the
+  // declaration order in THEMES.
+  const sections = useMemo(() => {
+    const buckets = new Map<string, Domain[]>(
+      THEMES.map((t) => [t.id, []]),
+    );
     for (const d of available) {
-      const tld = getTld(d.name);
-      if (!groups.has(tld)) groups.set(tld, []);
-      groups.get(tld)!.push(d);
+      buckets.get(classify(d))!.push(d);
     }
-    return Array.from(groups.entries()).sort(([a], [b]) => {
-      const ra = tldRank(a);
-      const rb = tldRank(b);
-      if (ra !== rb) return ra - rb;
-      return a.localeCompare(b);
-    });
+    return THEMES.map((t) => ({
+      ...t,
+      items: buckets.get(t.id) ?? [],
+    })).filter((s) => s.items.length > 0);
   }, [available]);
 
   return (
@@ -90,7 +219,7 @@ export default function SearchableDomainGrid({
       ) : (
         <>
           {sold.length > 0 && (
-            <section className="mb-16 rounded-3xl border-2 border-accent/30 bg-gradient-to-br from-accent/5 via-bg-card to-bg-card p-6 sm:p-10">
+            <section className="mb-20 rounded-3xl border-2 border-accent/30 bg-gradient-to-br from-accent/5 via-bg-card to-bg-card p-6 sm:p-10">
               <div className="flex items-center gap-3 mb-6">
                 <span className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
                   <svg
@@ -117,19 +246,62 @@ export default function SearchableDomainGrid({
             </section>
           )}
 
-          {grouped.map(([tld, items]) => (
-            <section key={tld} className="mb-12 last:mb-0">
-              <div className="flex items-end justify-between mb-5 px-1">
-                <h3 className="text-lg sm:text-xl font-bold tracking-tight">
-                  <span className="text-text-tertiary font-mono">.</span>
-                  <span className="text-text font-mono">{tld}</span>
-                  <span className="ml-3 text-sm font-medium text-text-tertiary">
-                    {items.length} {items.length === 1 ? "domain" : "domains"}
+          {/* Editorial table of contents */}
+          {!query && sections.length > 1 && (
+            <nav className="mb-16 rounded-3xl border border-border bg-bg-card/60 backdrop-blur p-6 sm:p-8">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-5">
+                Index
+              </p>
+              <ol className="grid gap-x-8 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+                {sections.map((s, i) => (
+                  <li key={s.id}>
+                    <a
+                      href={`#theme-${s.id}`}
+                      className="group flex items-baseline gap-3 py-1.5 border-b border-border/60 hover:border-accent/40 transition-colors"
+                    >
+                      <span className="font-mono text-[11px] tracking-widest text-text-tertiary">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-sm font-medium text-text-secondary group-hover:text-accent transition-colors flex-1">
+                        {s.label}
+                      </span>
+                      <span className="font-mono text-xs text-text-tertiary">
+                        {s.items.length}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
+
+          {sections.map((section, idx) => (
+            <section
+              id={`theme-${section.id}`}
+              key={section.id}
+              className="mb-20 last:mb-0 scroll-mt-24"
+            >
+              <header className="mb-8 border-t border-border pt-8 flex items-end justify-between gap-6 flex-wrap">
+                <div className="flex items-baseline gap-5 max-w-2xl">
+                  <span className="font-mono text-xs text-text-tertiary tracking-[0.2em] mt-1">
+                    {String(idx + 1).padStart(2, "0")}
                   </span>
-                </h3>
-              </div>
+                  <div>
+                    <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                      {section.label}
+                    </h3>
+                    <p className="text-sm text-text-tertiary mt-1.5 leading-relaxed">
+                      {section.tagline}
+                    </p>
+                  </div>
+                </div>
+                <span className="font-mono text-[11px] text-text-tertiary tracking-[0.2em] uppercase">
+                  {section.items.length}{" "}
+                  {section.items.length === 1 ? "address" : "addresses"}
+                </span>
+              </header>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((domain) => (
+                {section.items.map((domain) => (
                   <DomainCard key={domain.slug} domain={domain} />
                 ))}
               </div>
