@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
-
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { domain, name, email, company, plan, equityRange, website } = body;
@@ -11,10 +9,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is not set in this environment.");
+    return NextResponse.json(
+      { error: "Email service not configured. Please contact the site owner." },
+      { status: 500 },
+    );
+  }
+  const resend = new Resend(apiKey);
+
   const domainLine = domain || "(from homepage form)";
 
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "Great Address <onboarding@resend.dev>",
       to: "david@woldenberg.com",
       subject: `New Business Plan: ${company || name} — ${domainLine}`,
@@ -39,6 +47,14 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     });
+
+    if (result.error) {
+      console.error("Resend rejected proposal email:", result.error);
+      return NextResponse.json(
+        { error: `Email service error: ${result.error.message}` },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
