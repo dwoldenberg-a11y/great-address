@@ -5,14 +5,21 @@ import { Domain } from "@/data/domain-types";
 import DomainCard from "./DomainCard";
 
 // ─── Curated theme membership ────────────────────────────────────────────────
-// Domains are matched against these sets in declaration order; the first
-// matching theme wins, so order also encodes priority.
+// A domain can belong to multiple themes — every section it matches will list
+// it. The "more" catch-all picks up anything no other theme claimed.
 
-const TOP_PICKS = new Set([
+// Order matters here: items inside Top Picks render in this order, and the
+// first entry is the headliner.
+const TOP_PICKS_ORDER = [
+  "buy.ai",
+  "receptionist.ai", "training.ai", "mentor.ai", "warren.ai",
+  "inventory.ai", "documents.ai", "notes.ai", "marriage.ai", "reconcile.ai",
   "tmec.ai", "t-mec.ai", "mtr.ai", "etf.ai", "kpi.ai", "pmi.ai",
   "gdp.ai", "kyc.ai", "fx.ai", "pe.ai", "hq.ai", "tq.ai",
   "set.ai", "vq.ai",
-]);
+];
+const TOP_PICKS = new Set(TOP_PICKS_ORDER);
+const TOP_PICK_RANK = new Map(TOP_PICKS_ORDER.map((n, i) => [n, i]));
 
 const SPANISH = new Set([
   "manufactura.ai", "litio.ai", "cobre.ai", "monterrey.ai",
@@ -141,10 +148,8 @@ const THEMES: Theme[] = [
   },
 ];
 
-function classify(d: Domain): string {
-  for (const t of THEMES) if (t.match(d)) return t.id;
-  return "more";
-}
+// "more" is the catch-all for anything no other theme claimed.
+const NON_MORE_THEMES = () => THEMES.filter((t) => t.id !== "more");
 
 export default function SearchableDomainGrid({
   domains,
@@ -166,19 +171,24 @@ export default function SearchableDomainGrid({
   const sold = filtered.filter((d) => d.status === "sold");
   const available = filtered.filter((d) => d.status !== "sold");
 
-  // Bucket every available domain into exactly one theme, preserving the
-  // declaration order in THEMES.
+  // A domain can show in every theme that matches it. "more" gets whatever
+  // no other theme claimed.
   const sections = useMemo(() => {
-    const buckets = new Map<string, Domain[]>(
-      THEMES.map((t) => [t.id, []]),
-    );
-    for (const d of available) {
-      buckets.get(classify(d))!.push(d);
-    }
-    return THEMES.map((t) => ({
-      ...t,
-      items: buckets.get(t.id) ?? [],
-    })).filter((s) => s.items.length > 0);
+    const others = NON_MORE_THEMES();
+    return THEMES.map((t) => {
+      let items =
+        t.id === "more"
+          ? available.filter((d) => !others.some((o) => o.match(d)))
+          : available.filter(t.match);
+      if (t.id === "top") {
+        items = [...items].sort(
+          (a, b) =>
+            (TOP_PICK_RANK.get(a.name) ?? Infinity) -
+            (TOP_PICK_RANK.get(b.name) ?? Infinity),
+        );
+      }
+      return { ...t, items };
+    }).filter((s) => s.items.length > 0);
   }, [available]);
 
   return (
